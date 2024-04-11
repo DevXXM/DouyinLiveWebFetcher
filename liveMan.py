@@ -13,6 +13,8 @@ import string
 import requests
 import websocket
 from protobuf.douyin import *
+from utils.msgQue import QueueManager
+
 
 
 def generateMsToken(length=107):
@@ -62,10 +64,15 @@ class DouyinLiveWebFetcher:
         self.live_url = "https://live.douyin.com/"
         self.user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " \
                           "Chrome/120.0.0.0 Safari/537.36"
-    
+        self.q = QueueManager.get_queue()
+
+
     def start(self):
         self._connectWebSocket()
-    
+
+    def get_que(self):
+        return self.q
+
     def stop(self):
         self.ws.close()
     
@@ -207,7 +214,16 @@ class DouyinLiveWebFetcher:
         user_name = message.user.nick_name
         user_id = message.user.id
         content = message.content
-        print(f"【聊天msg】[{user_id}]{user_name}: {content}")
+        ret = {
+            'type': "chat_message",
+            'type_name': "聊天消息",
+            'user_name': user_name,
+            'user_id': user_id,
+            'content': content
+        }
+        self.q.put(ret)
+        # print(f"【聊天msg】[{user_id}]{user_name}: {content}")
+        # print(f"【聊天msg】[{user_id}]{user_name}: {content}")
     
     def _parseGiftMsg(self, payload):
         '''礼物消息'''
@@ -215,41 +231,69 @@ class DouyinLiveWebFetcher:
         user_name = message.user.nick_name
         gift_name = message.gift.name
         gift_cnt = message.combo_count
-        print(f"【礼物msg】{user_name} 送出了 {gift_name}x{gift_cnt}")
+        ret = {
+            'type': "gift_message",
+            'type_name': "礼物消息",
+            'user_name': user_name,
+            'gift_name': gift_name,
+            'gift_cnt': gift_cnt
+        }
+        self.q.put(ret)
+        # print(f"【礼物msg】{user_name} 送出了 {gift_name}x{gift_cnt}")
     
     def _parseLikeMsg(self, payload):
         '''点赞消息'''
         message = LikeMessage().parse(payload)
         user_name = message.user.nick_name
         count = message.count
-        print(f"【点赞msg】{user_name} 点了{count}个赞")
+        ret = {
+            'type': "like_message",
+            'type_name': "点赞消息",
+            'user_name': user_name,
+            'count': count
+        }
+        self.q.put(ret)
+        # print(f"【点赞msg】{user_name} 点了{count}个赞")
     
     def _parseMemberMsg(self, payload):
         '''进入直播间消息'''
-        message = MemberMessage().parse(payload)
-        user_name = message.user.nick_name
-        user_id = message.user.id
-        gender = ["女", "男"][message.user.gender]
-        print(f"【进场msg】[{user_id}][{gender}]{user_name} 进入了直播间")
+        # message = MemberMessage().parse(payload)
+        # user_name = message.user.nick_name
+        # user_id = message.user.id
+        # gender = ["女", "男"][message.user.gender]
+        # print(f"【进场msg】[{user_id}][{gender}]{user_name} 进入了直播间")
     
     def _parseSocialMsg(self, payload):
         '''关注消息'''
         message = SocialMessage().parse(payload)
         user_name = message.user.nick_name
         user_id = message.user.id
-        print(f"【关注msg】[{user_id}]{user_name} 关注了主播")
+        ret = {
+            'type': "social_message",
+            'type_name': "关注消息",
+            'user_name': user_name,
+            'user_id': user_id,
+        }
+        self.q.put(ret)
+        # print(f"【关注msg】[{user_id}]{user_name} 关注了主播")
     
     def _parseRoomUserSeqMsg(self, payload):
         '''直播间统计'''
         message = RoomUserSeqMessage().parse(payload)
         current = message.total
         total = message.total_pv_for_anchor
-        print(f"【统计msg】当前观看人数: {current}, 累计观看人数: {total}")
+        # print(f"【统计msg】当前观看人数: {current}, 累计观看人数: {total}")
     
     def _parseFansclubMsg(self, payload):
         '''粉丝团消息'''
         message = FansclubMessage().parse(payload)
         content = message.content
+        ret = {
+            'type': "fansclub_message",
+            'type_name': "粉丝团消息",
+            'content': content,
+        }
+        self.q.put(ret)
         print(f"【粉丝团msg】 {content}")
     
     def _parseControlMsg(self, payload):
