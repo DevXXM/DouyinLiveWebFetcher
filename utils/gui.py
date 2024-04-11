@@ -20,7 +20,8 @@ import threading
 import asyncio
 from utils.msgQue import QueueManager
 from liveMan import DouyinLiveWebFetcher
-
+from utils.fillMsg import FillMsg
+import json
 
 global gui  # 全局型式保存GUI句柄
 
@@ -50,6 +51,7 @@ class GUI:
 
         self.q = QueueManager.get_queue()
 
+
         now = datetime.now()
         timestamp_ms = round(now.timestamp() * 1000)
 
@@ -64,6 +66,11 @@ class GUI:
             "cid": ""
         }
         self.mqtt_config['cid'] = "client_" + str(timestamp_ms)
+
+        # self.btn_connect()
+
+
+
         Style(
             theme='journal')  # 主题修改 可选['cyborg', 'journal', 'darkly', 'flatly' 'solar', 'minty', 'litera', 'united', 'pulse', 'cosmo', 'lumen', 'yeti', 'superhero','sandstone']
         # self.client.on_log = self.log_callback
@@ -258,17 +265,18 @@ class GUI:
     def disconnect(self):
         self.client.loop_stop()
         self.client.disconnect()
+        self.appendTxt("与服务器断开连接!\n")
         print("disconnect!")
 
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
-            print("Connected to MQTT Broker ok!\n")
-            self.appendTxt("Connected to MQTT Broker ok!\n")
+            print("连接服务器成功!\n")
+            self.appendTxt("连接服务器成功!\n")
             self.var_bt1.set("断开")
             self.isConnect = True
         else:
-            print("Failed to connect, return code %d\n", rc)
-            self.appendTxt(f"Failed to connect, return code: {rc}\n")
+            print("连接失败, 错误代码： %d ，请咨询客服\n", rc)
+            self.appendTxt(f"连接失败, 错误代码： %d ，详情请咨询客服: {rc}\n")
             self.isConnect = False
 
     def on_message(self, client, userdata, msg):
@@ -308,11 +316,13 @@ class GUI:
             print("btn connect click: " + server + "," + port + ",QoS:" + self.comb1.get())
             self.appendTxt(f"连接 {server},port:{port}\n")
             self.connect(server, int(port), int(alive))
+            return True
         else:
             self.disconnect()
             self.var_bt1.set("连接")
             self.isConnect = False
             self.appendTxt(f"断开连接!\n")
+            return False
 
 
     def start_que_thread(self):
@@ -327,8 +337,19 @@ class GUI:
 
             if item is None:
                 break
-            print(f"ClassA received: {item}")
-            self.appendTxt(f"[{item['type_name']}]\n")
+            # print(item)
+
+            print(item['status'])
+            if item['status'] != 0:
+                # 失败事件
+                pass
+            else:
+                insert_text = FillMsg().fill_msg(item)
+                self.appendTxt(f"{insert_text}\n")
+                str = json.dumps(item)
+                self.mqtt_send(self.mqtt_config['topic'], str)
+                # print(f"ClassA received: {item}")
+                # self.appendTxt(f"[{item['type_name']}]\n")
             self.q.task_done()
 
 
@@ -340,21 +361,34 @@ class GUI:
         thread.daemon = True
         thread.start()
     def btn_sub(self):  # 订阅
+        status = self.btn_connect()
+        if status is False:
+            self.disconnect()
+            messagebox.showinfo('提示', '服务器连接失败!')
+            return False
+        sub = self.txt_sub.get("1.0", END).strip()
+        self.mqtt_config['topic'] = sub
+        print("btn sub click,topic: " + sub)
+        self.douyin = DouyinLiveWebFetcher(sub)
+        self.q = self.douyin.q
+        self.subscribe(sub)
+        self.start_live_thread(sub)
+        self.start_que_thread()
+
+    def mqtt_send(self, topic, text):  # 发布
         if self.isConnect:
-            sub = self.txt_sub.get("1.0", END).strip()
-            self.mqtt_config['topic'] = sub
-            print("btn sub click,topic: " + sub)
-            self.douyin = DouyinLiveWebFetcher(sub)
-            self.q = self.douyin.q
-            self.subscribe(sub)
-            self.start_live_thread(sub)
-            self.start_que_thread()
+            pub_topic = topic.strip()
+            self.mqtt_config['topic'] = pub_topic
+            payload = text.strip()
+            print("发送mqtt,topic: " + pub_topic)
+            self.publish(pub_topic, payload, int(self.comb1.get()))
+            self.tx_rx_cnt(0, 1)
         else:
-            messagebox.showinfo('提示', '服务器未连接!')
+            messagebox.showinfo('提示', '请连接服务器!')
 
     def btn_send(self):  # 发布
         if self.isConnect:
-            pub_topic =  self.txt_topic.get("1.0", END).strip()
+            pub_topic = self.txt_topic.get("1.0", END).strip()
             self.mqtt_config['topic'] = pub_topic
             payload = self.txt_tx.get("1.0", END).strip()
             print("btn pub click,topic: " + pub_topic)

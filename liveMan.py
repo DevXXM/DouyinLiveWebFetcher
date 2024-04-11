@@ -216,6 +216,7 @@ class DouyinLiveWebFetcher:
         content = message.content
         ret = {
             'type': "chat_message",
+            'status': 0,
             'type_name': "聊天消息",
             'user_name': user_name,
             'user_id': user_id,
@@ -233,6 +234,7 @@ class DouyinLiveWebFetcher:
         gift_cnt = message.combo_count
         ret = {
             'type': "gift_message",
+            'status': 0,
             'type_name': "礼物消息",
             'user_name': user_name,
             'gift_name': gift_name,
@@ -248,6 +250,7 @@ class DouyinLiveWebFetcher:
         count = message.count
         ret = {
             'type': "like_message",
+            'status': 0,
             'type_name': "点赞消息",
             'user_name': user_name,
             'count': count
@@ -270,6 +273,7 @@ class DouyinLiveWebFetcher:
         user_id = message.user.id
         ret = {
             'type': "social_message",
+            'status': 0,
             'type_name': "关注消息",
             'user_name': user_name,
             'user_id': user_id,
@@ -290,6 +294,7 @@ class DouyinLiveWebFetcher:
         content = message.content
         ret = {
             'type': "fansclub_message",
+            'status': 0,
             'type_name': "粉丝团消息",
             'content': content,
         }
@@ -301,5 +306,12 @@ class DouyinLiveWebFetcher:
         message = ControlMessage().parse(payload)
         
         if message.status == 3:
+            ret = {
+                'type': "live_closed",
+                'status': 3,
+                'type_name': "直播间已结束",
+                'content': content,
+            }
+            self.q.put(ret)
             print("直播间已结束")
             self.stop()
