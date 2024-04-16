@@ -118,7 +118,7 @@ class DouyinLiveWebFetcher:
             match = re.search(r'roomId\\":\\"(\d+)\\"', response.text)
             if match is None or len(match.groups()) < 1:
                 print("【X】No match found for roomId")
-            
+            print
             self.__room_id = match.group(1)
             
             return self.__room_id
@@ -216,6 +216,7 @@ class DouyinLiveWebFetcher:
         content = message.content
         ret = {
             'type': "chat_message",
+            'type_id': 1,
             'status': 0,
             'type_name': "聊天消息",
             'user_name': user_name,
@@ -234,6 +235,7 @@ class DouyinLiveWebFetcher:
         gift_cnt = message.combo_count
         ret = {
             'type': "gift_message",
+            'type_id': 2,
             'status': 0,
             'type_name': "礼物消息",
             'user_name': user_name,
@@ -250,6 +252,7 @@ class DouyinLiveWebFetcher:
         count = message.count
         ret = {
             'type': "like_message",
+            'type_id': 3,
             'status': 0,
             'type_name': "点赞消息",
             'user_name': user_name,
@@ -273,6 +276,7 @@ class DouyinLiveWebFetcher:
         user_id = message.user.id
         ret = {
             'type': "social_message",
+            'type_id': 4,
             'status': 0,
             'type_name': "关注消息",
             'user_name': user_name,
@@ -294,6 +298,7 @@ class DouyinLiveWebFetcher:
         content = message.content
         ret = {
             'type': "fansclub_message",
+            'type_id': 5,
             'status': 0,
             'type_name': "粉丝团消息",
             'content': content,
@@ -308,6 +313,7 @@ class DouyinLiveWebFetcher:
         if message.status == 3:
             ret = {
                 'type': "live_closed",
+                'type_id': -1,
                 'status': 3,
                 'type_name': "直播间已结束",
                 'content': content,

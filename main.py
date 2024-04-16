@@ -11,9 +11,6 @@ from utils.gui import GUI
 from liveMan import DouyinLiveWebFetcher
 
 if __name__ == '__main__':
-    # live_id = '28147898744'
-    # douyin = DouyinLiveWebFetcher(live_id)
-    # DouyinLiveWebFetcher(live_id).start()
     gui = GUI()
     gui.gettim()  # 开启时钟
     gui.root.mainloop()

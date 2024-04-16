@@ -6,7 +6,6 @@
 # @Project : study
 import time
 import os
-from tkinter import ttk
 from tkinter.ttk import *
 from tkinter import *
 from datetime import datetime
@@ -51,6 +50,8 @@ class GUI:
         self.interface()
 
         self.q = QueueManager.get_queue()
+
+
         now = datetime.now()
         timestamp_ms = round(now.timestamp() * 1000)
 
@@ -64,32 +65,23 @@ class GUI:
             "psd": "",
             "cid": ""
         }
-
-        self.duoji_config = {
-            "type": 2,
-            "delay": "800",
-            "times": "8",
-            "duration": "0.1",
-            "angle": 90
-        }
-
         self.mqtt_config['cid'] = "client_" + str(timestamp_ms)
+
+        # self.btn_connect()
+
+
 
         Style(
             theme='journal')  # 主题修改 可选['cyborg', 'journal', 'darkly', 'flatly' 'solar', 'minty', 'litera', 'united', 'pulse', 'cosmo', 'lumen', 'yeti', 'superhero','sandstone']
-
+        # self.client.on_log = self.log_callback
         self.isConnect = False
         self._img = None
-    def display_image(event):
-        selected_item = self.combobox.get()
-        if selected_item in images:
-            self.image_label.configure(image=images[selected_item])
-            self.image_label.image = images[selected_item]
+
     def interface(self):
         """"界面编写位置"""
         # --------------------------------操作区域-----------------------------#
         self.fr1 = Frame(self.root)
-        self.fr1.place(x=0, y=0, width=250, height=600)  # 区域1位置尺寸
+        self.fr1.place(x=0, y=0, width=220, height=600)  # 区域1位置尺寸
         img_path = os.path.join(os.path.dirname(__file__), 'me.png')
         img = Image.open(img_path)  # 替换为你的图片路径
         img = img.resize((80, 80))
@@ -98,49 +90,41 @@ class GUI:
         self.about = Label(self.fr1)
         self.about.image = self._img
         self.about.configure(image=self._img)
-        self.about.place(x=85, y=0, width=80, height=80)
+        self.about.place(x=65, y=0, width=80, height=80)
         pos = 80
-        self.lb_device_id = Label(self.fr1, text='设备ID:', anchor="e", fg='red')  # 点击可刷新
-        self.lb_device_id.place(x=10, y=pos, width=50, height=35)
-        self.txt_device_id = Text(self.fr1)
-        self.txt_device_id.place(x=75, y=pos, width=145, height=26)
-        self.txt_device_id.insert("1.0", "10000000d50048be")
+        self.lb_server = Label(self.fr1, text='地址:', anchor="e", fg='red')  # 点击可刷新
+        self.lb_server.place(x=0, y=pos, width=50, height=35)
+        self.txt_server = Text(self.fr1)
+        self.txt_server.place(x=65, y=pos, width=155, height=26)
+        self.txt_server.insert("1.0", "127.0.0.1")
 
-        self.lb1 = Label(self.fr1, text='设备类型:', anchor="e", fg='red')  # 点击可刷新
-        self.lb1.place(x=10, y=pos + 40, width=60, height=35)
+        self.lb1 = Label(self.fr1, text='端口:', anchor="e", fg='red')  # 点击可刷新
+        self.lb1.place(x=0, y=pos + 40, width=50, height=35)
         self.txt_port = Text(self.fr1)
-        self.txt_port.place(x=75, y=pos + 40, width=145, height=26)
-        self.txt_port.insert("1.0", 2)
+        self.txt_port.place(x=65, y=pos + 40, width=155, height=26)
+        self.txt_port.insert("1.0", 1883)
 
-        self.lb1 = Label(self.fr1, text='执行时间:', anchor="e", fg='red')  # 点击可刷新
-        self.lb1.place(x=10, y=pos + 80, width=60, height=35)
-        self.txt_delay = Text(self.fr1)
-        self.txt_delay.place(x=75, y=pos + 80, width=145, height=26)
-        self.txt_delay.insert("1.0", "300")
+        self.lb1 = Label(self.fr1, text='clientID:', anchor="e", fg='red')  # 点击可刷新
+        self.lb1.place(x=0, y=pos + 80, width=50, height=35)
+        self.txt_id = Text(self.fr1)
+        self.txt_id.place(x=65, y=pos + 80, width=155, height=26)
+        self.txt_id.insert("1.0", "mqtt-client")
 
+        self.lb1 = Label(self.fr1, text='用户名:', anchor="e", fg='red')  # 点击可刷新
+        self.lb1.place(x=0, y=pos + 120, width=50, height=35)
+        self.txt_name = Text(self.fr1)
+        self.txt_name.place(x=65, y=pos + 120, width=155, height=26)
 
-        # self.lb1 = Label(self.fr1, text='clientID:', anchor="e", fg='red')  # 点击可刷新
-        # self.lb1.place(x=0, y=pos + 80, width=50, height=35)
-        # self.txt_id = Text(self.fr1)
-        # self.txt_id.place(x=65, y=pos + 80, width=155, height=26)
-        # self.txt_id.insert("1.0", "mqtt-client")
+        self.lb1 = Label(self.fr1, text='密码 :', anchor="e", fg='red')  # 点击可刷新
+        self.lb1.place(x=0, y=pos + 160, width=50, height=35)
+        self.txt_pwd = Text(self.fr1)
+        self.txt_pwd.place(x=65, y=pos + 160, width=155, height=26)
 
-        self.lb1 = Label(self.fr1, text='转动角度:', anchor="e", fg='red')  # 点击可刷新
-        self.lb1.place(x=10, y=pos + 120, width=50, height=35)
-        self.txt_angle = Text(self.fr1)
-        self.txt_angle.place(x=75, y=pos + 120, width=145, height=26)
-        self.txt_angle.insert("1.0", "120")
-
-        # self.lb1 = Label(self.fr1, text='密码 :', anchor="e", fg='red')  # 点击可刷新
-        # self.lb1.place(x=0, y=pos + 160, width=50, height=35)
-        # self.txt_pwd = Text(self.fr1)
-        # self.txt_pwd.place(x=65, y=pos + 160, width=155, height=26)
-
-        # self.lb1 = Label(self.fr1, text='心跳 :', anchor="e", fg='red')  # 点击可刷新
-        # self.lb1.place(x=0, y=pos + 200, width=50, height=35)
-        # self.txt_heart = Text(self.fr1)
-        # self.txt_heart.place(x=65, y=pos + 200, width=155, height=26)
-        # self.txt_heart.insert("1.0", 60)
+        self.lb1 = Label(self.fr1, text='心跳 :', anchor="e", fg='red')  # 点击可刷新
+        self.lb1.place(x=0, y=pos + 200, width=50, height=35)
+        self.txt_heart = Text(self.fr1)
+        self.txt_heart.place(x=65, y=pos + 200, width=155, height=26)
+        self.txt_heart.insert("1.0", 60)
 
         self.var_bt1 = StringVar()
         self.var_bt1.set("连接")
@@ -153,7 +137,7 @@ class GUI:
 
         self.txt_sub = Text(self.fr1)
         self.txt_sub.place(x=5, y=368, width=155, height=28)
-        self.txt_sub.insert("1.0", "325905039003")
+        self.txt_sub.insert("1.0", "702109538601")
         self.btn5 = Button(self.fr1, text='订阅', command=self.btn_sub)  # 测试用
         self.btn5.place(x=170, y=368, width=50, height=28)
 
@@ -360,28 +344,12 @@ class GUI:
                 # 失败事件
                 pass
             else:
-                # 触发动作
-                action_num = FillMsg().fill_mqtt_json(item)
-                print(f"数量为：：：{action_num}")
-                if not action_num:
-                    pass
-                else:
-                    push_obj = {
-                        "type": 2,
-                        "delay": self.txt_delay.get("1.0", END).strip(),
-                        "times": action_num,
-                        "duration": "0.1",
-                        "angle": self.txt_angle.get("1.0", END).strip()
-                    }
-                    str = json.dumps(push_obj)
-                    self.mqtt_send(self.mqtt_config['topic'], str)
-                    print(f"收到礼物了，向设备发送数据：topic:{self.mqtt_config['topic']},str:{str}")
-                # 获取展示框文本
                 insert_text = FillMsg().fill_msg(item)
-
                 self.appendTxt(f"{insert_text}\n")
-                # str = json.dumps(item)
-                # self.mqtt_send(self.mqtt_config['topic'], str)
+                str = json.dumps(item)
+                self.mqtt_send(self.mqtt_config['topic'], str)
+                # print(f"ClassA received: {item}")
+                # self.appendTxt(f"[{item['type_name']}]\n")
             self.q.task_done()
 
 
@@ -398,16 +366,13 @@ class GUI:
             self.disconnect()
             messagebox.showinfo('提示', '服务器连接失败!')
             return False
-        sub = self.txt_device_id.get("1.0", END).strip()
-        liveid = self.txt_sub.get("1.0", END).strip()
-        print("设置topic")
-        print(sub)
+        sub = self.txt_sub.get("1.0", END).strip()
         self.mqtt_config['topic'] = sub
         print("btn sub click,topic: " + sub)
-        self.douyin = DouyinLiveWebFetcher(liveid)
+        self.douyin = DouyinLiveWebFetcher(sub)
         self.q = self.douyin.q
         self.subscribe(sub)
-        self.start_live_thread(liveid)
+        self.start_live_thread(sub)
         self.start_que_thread()
 
     def mqtt_send(self, topic, text):  # 发布
