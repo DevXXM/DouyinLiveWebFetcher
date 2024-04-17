@@ -26,6 +26,9 @@ class FillMsg:
 
     # 根据不同类型的消息触发不同的动作，生成动作json然后返回
     def fill_mqtt_json(self, obj):
+        print(obj)
+        print('22222222222222')
+        # return False
         if (obj['status'] != 0):
             return False
         if (obj['type'] == "chat_message"):
@@ -33,6 +36,7 @@ class FillMsg:
             pass
         if (obj['type'] == "gift_message"):
             # 礼物信息
+            print('送出礼物1111111111')
             return self.fill_gift(obj)
             # return f"【{obj['type_name']}】[{obj['user_name']}] 送出了 {obj['gift_name']} x {obj['gift_cnt']}"
         if (obj['type'] == "like_message"):

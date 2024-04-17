@@ -153,7 +153,7 @@ class GUI:
 
         self.txt_sub = Text(self.fr1)
         self.txt_sub.place(x=5, y=368, width=155, height=28)
-        self.txt_sub.insert("1.0", "325905039003")
+        self.txt_sub.insert("1.0", "235640146179")
         self.btn5 = Button(self.fr1, text='订阅', command=self.btn_sub)  # 测试用
         self.btn5.place(x=170, y=368, width=50, height=28)
 
@@ -360,13 +360,15 @@ class GUI:
                 # 失败事件
                 pass
             else:
+
                 # 触发动作
                 if(item['type_id'] == 2):
+                    # 触发动作
+                    print("准备开始111111111")
                     action_num = FillMsg().fill_mqtt_json(item)
-                    print(f"数量为：：：{action_num},{item}")
-                if not action_num:
-                    pass
-                else:
+                    if action_num == 0 or action_num is False:
+                        continue
+                    print(f"数量为：：：,{item}")
                     push_obj = {
                         "type": 2,
                         "delay": self.txt_delay.get("1.0", END).strip(),
@@ -377,6 +379,9 @@ class GUI:
                     str = json.dumps(push_obj)
                     self.mqtt_send(self.mqtt_config['topic'], str)
                     print(f"收到礼物了，向设备发送数据：topic:{self.mqtt_config['topic']},str:{str}")
+
+                else:
+                    pass
                 # 获取展示框文本
                 insert_text = FillMsg().fill_msg(item)
 
