@@ -157,7 +157,7 @@ class DouyinLiveWebFetcher:
         except Exception:
             self.stop()
             raise
-
+            print("连接失败啦 1")
             return False
 
     def _wsOnOpen(self, ws):
@@ -214,18 +214,18 @@ class DouyinLiveWebFetcher:
         user_name = message.user.nick_name
         user_id = message.user.id
         content = message.content
-        self._create_ret("chat_message", 1, type_name="聊天消息", user_name=user_name, user_id=user_id, content=content)
-        # print(f"【聊天msg】[{user_id}]{user_name}: {content}")
-        # print(f"【聊天msg】[{user_id}]{user_name}: {content}")
-    #公共封装消息方法
-    def _create_ret(self, type, type_id, **kwargs):
         ret = {
-            'type': type,
-            'type_id': type_id,
+            'type': "chat_message",
+            'type_id': 1,
             'status': 0,
-            **kwargs
+            'type_name': "聊天消息",
+            'user_name': user_name,
+            'user_id': user_id,
+            'content': content
         }
         self.q.put(ret)
+        # print(f"【聊天msg】[{user_id}]{user_name}: {content}")
+        # print(f"【聊天msg】[{user_id}]{user_name}: {content}")
 
     def _parseGiftMsg(self, payload):
         '''礼物消息'''
@@ -233,7 +233,16 @@ class DouyinLiveWebFetcher:
         user_name = message.user.nick_name
         gift_name = message.gift.name
         gift_cnt = message.combo_count
-        self._create_ret("gift_message", 2, type_name="礼物消息", user_name=user_name, gift_name=gift_name, gift_cnt=gift_cnt)
+        ret = {
+            'type': "gift_message",
+            'type_id': 2,
+            'status': 0,
+            'type_name': "礼物消息",
+            'user_name': user_name,
+            'gift_name': gift_name,
+            'gift_cnt': gift_cnt
+        }
+        self.q.put(ret)
         # print(f"【礼物msg】{user_name} 送出了 {gift_name}x{gift_cnt}")
 
     def _parseLikeMsg(self, payload):
@@ -241,7 +250,15 @@ class DouyinLiveWebFetcher:
         message = LikeMessage().parse(payload)
         user_name = message.user.nick_name
         count = message.count
-        self._create_ret("like_message", 3, type_name="点赞消息", user_name=user_name, count=count)
+        ret = {
+            'type': "like_message",
+            'type_id': 3,
+            'status': 0,
+            'type_name': "点赞消息",
+            'user_name': user_name,
+            'count': count
+        }
+        self.q.put(ret)
         # print(f"【点赞msg】{user_name} 点了{count}个赞")
 
     def _parseMemberMsg(self, payload):
@@ -257,7 +274,15 @@ class DouyinLiveWebFetcher:
         message = SocialMessage().parse(payload)
         user_name = message.user.nick_name
         user_id = message.user.id
-        self._create_ret("social_message", 4, type_name="关注消息", user_name=user_name, user_id=user_id)
+        ret = {
+            'type': "social_message",
+            'type_id': 4,
+            'status': 0,
+            'type_name': "关注消息",
+            'user_name': user_name,
+            'user_id': user_id,
+        }
+        self.q.put(ret)
         # print(f"【关注msg】[{user_id}]{user_name} 关注了主播")
 
     def _parseRoomUserSeqMsg(self, payload):
@@ -271,7 +296,14 @@ class DouyinLiveWebFetcher:
         '''粉丝团消息'''
         message = FansclubMessage().parse(payload)
         content = message.content
-        self._create_ret("fansclub_message", 5, type_name="粉丝团消息", content=content)
+        ret = {
+            'type': "fansclub_message",
+            'type_id': 5,
+            'status': 0,
+            'type_name': "粉丝团消息",
+            'content': content,
+        }
+        self.q.put(ret)
         print(f"【粉丝团msg】 {content}")
 
     def _parseControlMsg(self, payload):
@@ -279,6 +311,13 @@ class DouyinLiveWebFetcher:
         message = ControlMessage().parse(payload)
 
         if message.status == 3:
-            self._create_ret("live_closed", -1, type_name="直播间已结束", content="直播间已结束")
+            ret = {
+                'type': "live_closed",
+                'type_id': -1,
+                'status': 3,
+                'type_name': "直播间已结束",
+                'content': content,
+            }
+            self.q.put(ret)
             print("直播间已结束")
             self.stop()

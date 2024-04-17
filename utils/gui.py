@@ -361,8 +361,9 @@ class GUI:
                 pass
             else:
                 # 触发动作
-                action_num = FillMsg().fill_mqtt_json(item)
-                print(f"数量为：：：{action_num}")
+                if(item['type_id'] == 2):
+                    action_num = FillMsg().fill_mqtt_json(item)
+                    print(f"数量为：：：{action_num},{item}")
                 if not action_num:
                     pass
                 else:

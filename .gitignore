@@ -2,3 +2,7 @@
 /__pycache__
 /protobuf/__pycache__
 /.idea
+/device/firmware
+device/version.json
+device/uuid.txt
+/utils/__pycache__
